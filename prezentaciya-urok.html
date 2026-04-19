@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Урок: fetch и HTTP (GET, POST, PUT, DELETE)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0c0e14;
+      --bg-elevated: rgba(24, 28, 38, 0.72);
+      --bg-card: rgba(20, 24, 34, 0.88);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(126, 168, 255, 0.22);
+      --text: #eceef2;
+      --text-muted: #9ba3b4;
+      --accent: #7eb8ff;
+      --accent-2: #c4a8ff;
+      --mint: #5eead4;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.35);
+      --shadow-code: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-base);
+      background-image:
+        radial-gradient(ellipse 100% 80% at 50% -30%, rgba(88, 122, 255, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 100% 20%, rgba(168, 120, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 0% 90%, rgba(45, 212, 191, 0.06) 0%, transparent 45%);
+      background-attachment: fixed;
+      color: var(--text);
+      line-height: 1.62;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .slide {
+      position: relative;
+      min-height: 100vh;
+      padding: clamp(2rem, 5vw, 3.5rem) clamp(1.5rem, 5vw, 4rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-bottom: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #5b8cff, #a78bfa, #34d399, #5b8cff);
+      background-size: 200% 100%;
+      opacity: 0.9;
+    }
+
+    .slide:nth-child(odd) {
+      background: linear-gradient(165deg, rgba(30, 34, 48, 0.55) 0%, rgba(14, 16, 22, 0.92) 100%);
+    }
+
+    .slide:nth-child(even) {
+      background: linear-gradient(175deg, rgba(20, 24, 34, 0.65) 0%, rgba(12, 14, 20, 0.95) 100%);
+    }
+
+    .slide--hero {
+      justify-content: center;
+      text-align: left;
+    }
+
+    .slide--hero::after {
+      content: "";
+      position: absolute;
+      width: min(520px, 90vw);
+      height: min(520px, 90vw);
+      right: -15%;
+      top: 50%;
+      transform: translateY(-50%);
+      background: radial-gradient(circle, rgba(91, 140, 255, 0.12) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .slide--hero > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide--hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin: 0 0 1.25rem;
+      background: linear-gradient(120deg, #b8d4ff 0%, #7eb8ff 40%, #a8c4ff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      max-width: min(100%, 22rem);
+    }
+
+    .slide--hero .lead-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(126, 184, 255, 0.12);
+      border: 1px solid rgba(126, 184, 255, 0.25);
+    }
+
+    h2 {
+      font-size: clamp(1.3rem, 3vw, 1.85rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 1.15rem;
+      color: #c8d9f8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    h2 .tag {
+      vertical-align: middle;
+    }
+
+    p, li {
+      font-size: clamp(1rem, 2vw, 1.12rem);
+      max-width: 52rem;
+      color: var(--text);
+    }
+
+    ul {
+      padding-left: 0;
+      margin: 0.5rem 0 0;
+      list-style: none;
+    }
+
+    ul li {
+      position: relative;
+      padding-left: 1.35rem;
+      margin: 0.55rem 0;
+    }
+
+    ul li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--mint));
+      box-shadow: 0 0 12px rgba(126, 184, 255, 0.5);
+    }
+
+    ol {
+      padding-left: 1.35rem;
+      max-width: 52rem;
+    }
+
+    ol li {
+      margin: 0.5rem 0;
+      padding-left: 0.25rem;
+    }
+
+    ol li::marker {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    code, .mono {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      background: rgba(40, 48, 64, 0.95);
+      padding: 0.12em 0.45em;
+      border-radius: 6px;
+      font-size: 0.88em;
+      border: 1px solid var(--border-subtle);
+      color: #d4e2ff;
+    }
+
+    .table-wrap {
+      max-width: 52rem;
+      margin-top: 1.25rem;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      background: var(--bg-card);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 1.15rem;
+      text-align: left;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    th {
+      background: rgba(50, 58, 78, 0.65);
+      color: #c8d9f8;
+      font-weight: 600;
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    tbody tr {
+      transition: background 0.15s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(126, 184, 255, 0.06);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 0.28em 0.65em;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.82em;
+      letter-spacing: 0.02em;
+      border: 1px solid transparent;
+    }
+
+    .get {
+      background: linear-gradient(145deg, rgba(40, 80, 140, 0.5), rgba(30, 58, 95, 0.85));
+      color: #9ec8ff;
+      border-color: rgba(126, 184, 255, 0.35);
+    }
+
+    .post {
+      background: linear-gradient(145deg, rgba(35, 100, 65, 0.45), rgba(25, 70, 48, 0.85));
+      color: #86e0a8;
+      border-color: rgba(94, 234, 212, 0.25);
+    }
+
+    .put {
+      background: linear-gradient(145deg, rgba(120, 95, 40, 0.45), rgba(80, 65, 30, 0.85));
+      color: #fde047;
+      border-color: rgba(253, 224, 71, 0.3);
+    }
+
+    .del {
+      background: linear-gradient(145deg, rgba(130, 45, 45, 0.5), rgba(85, 30, 35, 0.88));
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .hint {
+      margin-top: 1.75rem;
+      padding: 1rem 1.15rem;
+      font-size: 0.94rem;
+      color: var(--text-muted);
+      max-width: 52rem;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid rgba(126, 184, 255, 0.45);
+      background: rgba(126, 184, 255, 0.06);
+    }
+
+    .lines {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .step {
+      margin: 0.85rem 0;
+      padding: 0.9rem 1rem 0.9rem 1.1rem;
+      border-left: 3px solid rgba(196, 168, 255, 0.45);
+      max-width: 52rem;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .step strong {
+      color: #fde68a;
+      font-weight: 600;
+    }
+
+    pre.snippet {
+      margin: 0.65rem 0 0;
+      padding: 1rem 1.15rem;
+      background: linear-gradient(165deg, #0a0c12 0%, #12151f 100%);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: clamp(0.74rem, 1.55vw, 0.86rem);
+      line-height: 1.5;
+      max-width: 52rem;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-code);
+    }
+
+    pre.snippet code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #b8c5e0;
+      font-size: inherit;
+    }
+
+    .slide-code {
+      justify-content: flex-start;
+      padding-top: 2.25rem;
+      padding-bottom: 2.5rem;
+    }
+
+    .slide-code h2 {
+      margin-bottom: 0.85rem;
+    }
+
+    pre.fullcode {
+      max-height: min(38vh, 280px);
+      overflow: auto;
+      margin-top: 0.35rem;
+      margin-bottom: 0.65rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(126, 184, 255, 0.35) transparent;
+    }
+
+    pre.fullcode::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    pre.fullcode::-webkit-scrollbar-thumb {
+      background: rgba(126, 184, 255, 0.35);
+      border-radius: 4px;
+    }
+
+    .explain-block {
+      margin-top: 0.75rem;
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .explain-block p {
+      margin: 0.45rem 0;
+      max-width: none;
+      font-size: clamp(0.88rem, 1.75vw, 0.98rem);
+      color: #dde2eb;
+    }
+
+    .explain-block p:first-child {
+      margin-top: 0;
+    }
+
+    .explain-block p:last-child {
+      margin-bottom: 0;
+    }
+
+    .explain-block strong {
+      color: #fde68a;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #111;
+      }
+      .slide::before,
+      .slide--hero::after {
+        display: none;
+      }
+      pre.fullcode {
+        max-height: none;
+        overflow: visible;
+      }
+      .slide {
+        min-height: auto;
+        page-break-after: always;
+        border: none;
+        background: #fff;
+      }
+      .explain-block,
+      .hint,
+      .step {
+        border: 1px solid #ddd;
+        background: #f9f9f9;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="slide slide--hero">
+    <span class="lead-badge">Урок · веб-разработка</span>
+    <h1>HTTP-запросы в браузере</h1>
+    <p><strong>О чём урок:</strong> как страница в браузере «спрашивает» и «отправляет» данные на сервер с помощью <code>fetch()</code> и четырёх типов запросов: GET, POST, PUT, DELETE.</p>
+    <p><strong>Где смотреть примеры:</strong> в проекте — папки <code>html/</code> и <code>js/</code>. Откройте нужный HTML в браузере (можно просто двойным щелчком по файлу или через локальный сервер — главное, чтобы был интернет).</p>
+    <p class="hint">Для тренировки используем тестовый сайт <code>jsonplaceholder.typicode.com</code> — он отдаёт выдуманные «посты» в виде JSON, ничего настоящего не ломает.</p>
+  </section>
+
+  <section class="slide">
+    <h2>Зачем это в вебе</h2>
+    <ul>
+      <li><strong>GET</strong> — «дай мне данные»: список постов, страница профиля и т.п.</li>
+      <li><strong>POST</strong> — «создай новую запись» на сервере.</li>
+      <li><strong>PUT</strong> — «замени запись целиком», например обновить пост с нужным номером (id).</li>
+      <li><strong>DELETE</strong> — «удали запись» с этим номером.</li>
+    </ul>
+    <p>Эти четыре действия по-английски называют <strong>CRUD</strong> (создать, прочитать, обновить, удалить) — это самый частый набор операций с данными в приложениях.</p>
+  </section>
+
+  <section class="slide">
+    <h2>Сводка по вашим файлам</h2>
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Файл</th><th>Метод</th><th>Что делает</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>GET.js</code></td><td><span class="tag get">GET</span></td><td>Тянет список постов с сервера и показывает только первые пять.</td></tr>
+        <tr><td><code>POST.js</code></td><td><span class="tag post">POST</span></td><td>Шлёт заголовок и текст — как будто создаём новый пост.</td></tr>
+        <tr><td><code>PUT.js</code></td><td><span class="tag put">PUT</span></td><td>По номеру поста подставляет новый заголовок и текст — «перезаписать» пост.</td></tr>
+        <tr><td><code>DELETE.js</code></td><td><span class="tag del">DELETE</span></td><td>По номеру поста просит сервер его удалить.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="hint">Ниже — <strong>весь код</strong> каждого файла и простые пояснения к строкам. У DELETE мы не разбираем ответ как JSON — так и задумано: сервер часто ничего не присылает в теле ответа.</p>
+  </section>
+
+  <section class="slide">
+    <h2>Связка HTML + JS</h2>
+    <p class="lines">В разметке внутри <code>&lt;body&gt;</code> стоят кнопки и поля с уникальными <code>id</code>, а в конце страницы подключается файл со скриптом, например так:</p>
+    <pre class="snippet">&lt;button id="loadData"&gt;…&lt;/button&gt;
+&lt;div id="result"&gt;&lt;/div&gt;
+&lt;script src="../js/GET.js"&gt;&lt;/script&gt;</pre>
+    <div class="step"><strong>Идея:</strong> скрипт по <code>id</code> находит кнопку и место для текста, при нажатии на кнопку делает запрос и подставляет ответ в блок <code>result</code> (через <code>innerHTML</code>).</div>
+    <div class="step"><strong>POST и PUT:</strong> в форме есть поля с <code>id</code> вроде <code>title</code>, <code>body</code>, иногда <code>postId</code> — скрипт читает их тем же способом: <code>getElementById('title')</code> и т.д.</div>
+  </section>
+
+  <section class="slide">
+    <h2>Что такое <code>fetch</code></h2>
+    <p><code>fetch</code> — это встроенная в браузер функция: она <strong>отправляет HTTP-запрос</strong> по адресу (URL) и <strong>получает ответ</strong> от сервера. Её не нужно подключать библиотекой — она уже есть в современном JavaScript.</p>
+    <ul>
+      <li><strong>Самый простой вызов</strong> — один аргумент, адрес страницы API. Так по умолчанию уходит запрос <span class="tag get">GET</span>: «дай данные по этому URL».</li>
+      <li><strong>Второй аргумент — объект настроек:</strong> там указывают <code>method</code> (<code>'POST'</code>, <code>'PUT'</code>, <code>'DELETE'</code>), при необходимости <code>headers</code> (например, что тело — JSON) и <code>body</code> — строку с данными, которую сервер должен прочитать.</li>
+      <li><strong>Результат не приходит сразу:</strong> <code>fetch</code> возвращает <em>обещание</em> (Promise). Когда ответ реально придёт из сети, дальше работают цепочки <code>.then(...)</code> и при ошибке — <code>.catch(...)</code> (подробнее — на отдельном слайде ниже).</li>
+      <li><strong>Объект ответа</strong> — это не сами «данные поста» сразу: часто сначала проверяют успешность (<code>response.ok</code>), а данные в формате JSON забирают вызовом <code>response.json()</code> (он тоже асинхронный, поэтому его обычно ставят внутрь <code>.then</code>).</li>
+    </ul>
+    <pre class="snippet">// GET — только адрес
+fetch('https://пример.com/api/posts');
+
+// POST — адрес + настройки и тело
+fetch('https://пример.com/api/posts', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ title: 'Заголовок', body: 'Текст' })
+});</pre>
+    <p class="hint">Дальше в презентации тот же <code>fetch</code> повторяется в каждом файле — меняется только метод и то, что передаём в запросе.</p>
+  </section>
+
+  <section class="slide slide-code">
+    <h2><span class="tag get">GET.js</span> — полный код и пояснения</h2>
+    <pre class="snippet fullcode"><code>const btn = document.getElementById('loadData');
+const result = document.getElementById('result');
+
+
+btn.addEventListener('click', () => {
+  result.innerHTML = 'Загрузка... ⏳';
+
+
+  fetch('https://jsonplaceholder.typicode.com/posts')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Ошибка запроса: ' + response.status);
+      }
+
+      return response.json();
+    })
+    .then(data => {
+
+      const firstFive = data.slice(0, 5);
+      result.innerHTML = `&lt;h3>Полученные данные:&lt;/h3>&lt;pre>${JSON.stringify(firstFive, null, 2)}&lt;/pre>`;
+    })
+    .catch(error => {
+      result.innerHTML = `&lt;span style="color:red;">${error.message}&lt;/span>`;
+    });
+});
+</code></pre>
+    <div class="explain-block">
+      <p><strong>Строки 1–2:</strong> Запоминаем кнопку и место на странице, куда потом выведем результат.</p>
+      <p><strong>Строка 5:</strong> Всё ниже срабатывает только когда пользователь нажал кнопку.</p>
+      <p><strong>Строка 6:</strong> Сразу пишем «Загрузка…», чтобы было видно, что страница что-то делает.</p>
+      <p><strong>Строка 9:</strong> <code>fetch</code> с одним адресом — это запрос GET: «дай список постов» с тестового сайта.</p>
+      <p><strong>Строки 10–15:</strong> Когда ответ пришёл: если всё плохо (не тот код ответа) — считаем это ошибкой и передаём дальше в обработчик ошибок. Если всё хорошо — превращаем текст ответа в обычный JavaScript-массив постов через <code>json()</code>.</p>
+      <p><strong>Строки 17–20:</strong> Из массива берём только пять первых постов, оформляем их как текст JSON с отступами и вставляем на страницу в блок <code>result</code>.</p>
+      <p><strong>Строки 22–24:</strong> Если что-то сломалось (интернет, ошибка сервера, наша же <code>throw</code>) — показываем сообщение об ошибке красным.</p>
+    </div>
+  </section>
+
+  <section class="slide slide-code">
+    <h2><span class="tag post">POST.js</span> — полный код и пояснения</h2>
+    <pre class="snippet fullcode"><code>const sendBtn = document.getElementById('sendBtn');
+const result = document.getElementById('result');
+
+sendBtn.addEventListener('click', () => {
+    const title = document.getElementById('title').value;
+    const body = document.getElementById('body').value;
+
+    // Проверяем, что поля не пустые
+    if (!title || !body) {
+        result.innerHTML = '&lt;span style="color:red;">Пожалуйста, заполните все поля&lt;/span>';
+        return;
+    }
+
+    result.innerHTML = 'Отправляем данные... ⏳';
+
+
+   fetch('https://jsonplaceholder.typicode.com/posts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: title,
+      body: body,
+      userId: 1
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Ошибка запроса: ' + response.status);
+    }
+    return response.json();
+  })
+  .then(data => {
+    result.innerHTML = `&lt;h3>Ответ сервера:&lt;/h3>&lt;pre>${JSON.stringify(data, null, 2)}&lt;/pre>`;
+  })
+  .catch(error => {
+    result.innerHTML = `&lt;span style="color:red;">${error.message}&lt;/span>`;
+  });
+});</code></pre>
+    <div class="explain-block">
+      <p><strong>Строки 1–2:</strong> Кнопка «отправить» и блок, куда выведем ответ сервера.</p>
+      <p><strong>Строки 5–6:</strong> Берём то, что ввели в полях заголовка и текста поста.</p>
+      <p><strong>Строки 8–12:</strong> Если что-то не заполнено — пишем предупреждение и выходим: до сервера запрос не доходит.</p>
+      <p><strong>Строка 14:</strong> Показываем «Отправляем данные…», пока ждём ответ.</p>
+      <p><strong>Строки 17–26:</strong> Отправляем POST: говорим серверу «создай пост», в заголовке указываем, что тело — JSON, в теле передаём заголовок, текст и номер пользователя (тестовый сайт так просит).</p>
+      <p><strong>Строки 28–33:</strong> Если ответ успешный — разбираем JSON и получаем объект «как будто созданного» поста (у тестового API часто появится <code>id: 101</code>).</p>
+      <p><strong>Строки 34–35:</strong> Показываем этот ответ на странице.</p>
+      <p><strong>Строки 37–39:</strong> Любая ошибка — красным текстом.</p>
+    </div>
+  </section>
+
+  <section class="slide slide-code">
+    <h2><span class="tag put">PUT.js</span> — полный код и пояснения</h2>
+    <pre class="snippet fullcode"><code>const updateBtn = document.getElementById('updateBtn');
+const result = document.getElementById('result');
+
+updateBtn.addEventListener('click', () => {
+  const postId = document.getElementById('postId').value;
+  const title = document.getElementById('title').value;
+  const body = document.getElementById('body').value;
+
+  if (!postId || !title || !body) {
+    result.innerHTML = '&lt;span style="color:red;">Заполните все поля&lt;/span>';
+    return;
+  }
+
+  result.innerHTML = 'Отправляем запрос... ⏳';
+
+  fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: postId,
+      title: title,
+      body: body,
+      userId: 1
+    })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
+    return response.json();
+  })
+  .then(data => {
+    result.innerHTML = `
+      &lt;h3>Ответ сервера:&lt;/h3>
+      &lt;pre>${JSON.stringify(data, null, 2)}&lt;/pre>
+    `;
+  })
+  .catch(error => {
+    result.innerHTML = `&lt;span style="color:red;">${error.message}&lt;/span>`;
+  });
+});
+</code></pre>
+    <div class="explain-block">
+      <p><strong>Строки 1–2:</strong> Кнопка обновления и место для ответа.</p>
+      <p><strong>Строки 5–7:</strong> Считываем номер поста и новые заголовок с текстом.</p>
+      <p><strong>Строки 9–12:</strong> Если что-то пусто — сообщаем об этом и не шлём запрос.</p>
+      <p><strong>Строка 14:</strong> Показываем, что запрос ушёл и мы ждём.</p>
+      <p><strong>Строки 16–26:</strong> Адрес содержит номер поста — мы как бы говорим: «перезапиши именно этот пост». Метод PUT, в теле снова JSON с номером, заголовком, текстом и пользователем.</p>
+      <p><strong>Строки 28–31:</strong> Если всё ок — разбираем ответ как JSON и получаем объект поста после «обновления».</p>
+      <p><strong>Строки 32–36:</strong> Выводим заголовок и красиво отформатированный JSON в блоке на странице.</p>
+      <p><strong>Строки 38–40:</strong> Ошибки показываем отдельно.</p>
+    </div>
+  </section>
+
+  <section class="slide slide-code">
+    <h2><span class="tag del">DELETE.js</span> — полный код и пояснения</h2>
+    <pre class="snippet fullcode"><code>const deleteBtn = document.getElementById('deleteBtn');
+const result = document.getElementById('result');
+
+deleteBtn.addEventListener('click', () => {
+  const postId = document.getElementById('postId').value;
+
+  if (!postId) {
+    result.innerHTML = '&lt;span style="color:red;">Введите ID поста&lt;/span>';
+    return;
+  }
+
+  result.innerHTML = 'Отправляем запрос на удаление... ⏳';
+
+  fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`, {
+    method: 'DELETE'
+  })
+    .then(response => {
+      if (response.ok) {
+        result.innerHTML = `&lt;span style="color:green;">Пост с ID ${postId} успешно удалён ✅&lt;/span>`;
+      } else {
+        throw new Error(`Ошибка: ${response.status}`);
+      }
+    })
+    .catch(error => {
+      result.innerHTML = `&lt;span style="color:red;">${error.message}&lt;/span>`;
+    });
+});
+</code></pre>
+    <div class="explain-block">
+      <p><strong>Строки 1–2:</strong> Кнопка удаления и блок с результатом.</p>
+      <p><strong>Строки 4–10:</strong> При нажатии читаем номер поста; если его не ввели — просим ввести и выходим.</p>
+      <p><strong>Строка 12:</strong> Пишем, что запрос на удаление отправлен.</p>
+      <p><strong>Строки 14–16:</strong> Шлём DELETE на адрес с этим номером — дополнительных данных в запросе не нужно.</p>
+      <p><strong>Строки 17–23:</strong> Здесь не обязательно вызывать <code>json()</code>: при удалении сервер часто не присылает полезное тело. Достаточно проверить, что ответ «успешный» — тогда показываем зелёное сообщение; иначе считаем это ошибкой.</p>
+      <p><strong>Строки 24–26:</strong> Любая ошибка — красным текстом.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <h2>Цепочка «сначала подожди, потом сделай» (<code>.then</code> / <code>.catch</code>)</h2>
+    <ul>
+      <li><code>fetch</code> не ждёт ответ сразу: он возвращает «обещание» (Promise) — результат придёт позже.</li>
+      <li>Первый блок <code>.then</code> — смотрим, пришёл ли нормальный ответ; если нет, создаём ошибку, и она попадёт вниз, в <code>catch</code>.</li>
+      <li>Следующий <code>.then</code> — уже работаем с готовыми данными (например с массивом или объектом после <code>json()</code>).</li>
+      <li><code>catch</code> — одно место, где можно показать пользователю, что пошло не так (обрыв сети, «не найдено», ошибка сервера).</li>
+    </ul>
+    <p class="hint">То же самое можно записать через <code>async/await</code> и <code>try/catch</code> — смысл тот же, только читается как обычный пошаговый код.</p>
+  </section>
+
+  <section class="slide">
+    <h2>Что показать ученикам на практике</h2>
+    <ol>
+      <li>Открыть <code>html/GET.html</code>, нажать кнопку — на экране появится кусок JSON со списком постов.</li>
+      <li>POST — ввести заголовок и текст, отправить — в ответе будет «новый» пост с номером (на тестовом сайте это условность, не настоящая база).</li>
+      <li>PUT — указать, например, номер <code>1</code>, поменять текст — в ответе увидите обновлённые поля.</li>
+      <li>DELETE — снова номер <code>1</code> — появится сообщение об успехе (на демо-сервере ничего реально из базы не стирается).</li>
+    </ol>
+    <p class="hint">Удобно листать слайды колёсиком мыши или распечатать страницу в PDF для раздачи.</p>
+  </section>
+
+</body>
+</html>
