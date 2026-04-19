@@ -42,6 +42,7 @@
 
     body {
       margin: 0;
+      padding-bottom: 2.25rem;
       font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
       background-color: var(--bg-base);
       background-image:
@@ -472,10 +473,35 @@
       }
     }
 
+    .page-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding: 0.4rem 1rem max(0.45rem, env(safe-area-inset-bottom, 0px));
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: rgba(155, 163, 180, 0.75);
+      pointer-events: none;
+      background: linear-gradient(to top, rgba(12, 14, 20, 0.97) 30%, transparent 100%);
+    }
+
     @media print {
       body {
         background: #fff;
         color: #111;
+        padding-bottom: 0;
+      }
+      .page-footer {
+        position: static;
+        margin-top: 1.5rem;
+        padding: 0.5rem;
+        background: none;
+        color: #666;
+        font-size: 0.65rem;
       }
       .slide::before,
       .slide--hero::after {
@@ -781,7 +807,6 @@ deleteBtn.addEventListener('click', () => {
     <p class="hint">Удобно листать слайды колёсиком мыши или распечатать страницу в PDF для раздачи.</p>
   </section>
 
-
-  
+  <footer class="page-footer">Daler Sabirov</footer>
 </body>
 </html>
