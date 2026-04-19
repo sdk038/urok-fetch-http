@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0e14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Урок: fetch и HTTP (GET, POST, PUT, DELETE)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -392,6 +394,84 @@
       color: #fde68a;
     }
 
+    /* Телефоны и узкие экраны: удобная прокрутка и вырезы экрана */
+    @media (max-width: 640px) {
+      body {
+        background-attachment: scroll;
+      }
+
+      .slide {
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding-top: max(1.25rem, env(safe-area-inset-top, 0px));
+        padding-right: max(1rem, env(safe-area-inset-right, 0px));
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+        padding-left: max(1rem, env(safe-area-inset-left, 0px));
+      }
+
+      .slide--hero::after {
+        opacity: 0.35;
+      }
+
+      .slide--hero h1 {
+        font-size: clamp(1.55rem, 6.5vw, 2.1rem);
+        max-width: 100%;
+      }
+
+      .lead-badge {
+        font-size: 0.72rem;
+      }
+
+      h2 {
+        font-size: clamp(1.15rem, 4.5vw, 1.5rem);
+      }
+
+      p,
+      li {
+        font-size: clamp(0.95rem, 3.8vw, 1.08rem);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-left: -0.25rem;
+        margin-right: -0.25rem;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+      }
+
+      table {
+        font-size: 0.88rem;
+      }
+
+      th,
+      td {
+        padding: 0.65rem 0.8rem;
+      }
+
+      .slide-code {
+        padding-top: max(1.5rem, env(safe-area-inset-top, 0px));
+      }
+
+      pre.fullcode {
+        max-height: min(52vh, 340px);
+        font-size: clamp(0.65rem, 2.8vw, 0.78rem);
+      }
+
+      pre.snippet {
+        font-size: clamp(0.68rem, 2.9vw, 0.8rem);
+        padding: 0.85rem 0.95rem;
+      }
+
+      .explain-block p {
+        font-size: clamp(0.85rem, 3.2vw, 0.95rem);
+      }
+
+      .hint {
+        font-size: 0.9rem;
+      }
+    }
+
     @media print {
       body {
         background: #fff;
@@ -701,5 +781,7 @@ deleteBtn.addEventListener('click', () => {
     <p class="hint">Удобно листать слайды колёсиком мыши или распечатать страницу в PDF для раздачи.</p>
   </section>
 
+
+  
 </body>
 </html>
