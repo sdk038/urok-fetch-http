@@ -562,7 +562,7 @@
       </tbody>
     </table>
     </div>
-    <p class="hint">Ниже — <strong>весь код</strong> каждого файла и простые пояснения к строкам. У DELETE мы не разбираем ответ как JSON — так и задумано: сервер часто ничего не присылает в теле ответа.</p>
+    <p class="hint">Ниже — <strong>весь код</strong> каждого файла и кратко, <strong>какие методы за что отвечают</strong> в цепочке запроса. У DELETE мы не разбираем ответ как JSON — так и задумано: сервер часто ничего не присылает в теле ответа.</p>
   </section>
 
   <section class="slide">
@@ -581,7 +581,7 @@
     <ul>
       <li><strong>Самый простой вызов</strong> — один аргумент, адрес страницы API. Так по умолчанию уходит запрос <span class="tag get">GET</span>: «дай данные по этому URL».</li>
       <li><strong>Второй аргумент — объект настроек:</strong> там указывают <code>method</code> (<code>'POST'</code>, <code>'PUT'</code>, <code>'DELETE'</code>), при необходимости <code>headers</code> (например, что тело — JSON) и <code>body</code> — строку с данными, которую сервер должен прочитать.</li>
-      <li><strong>Результат не приходит сразу:</strong> <code>fetch</code> возвращает <em>обещание</em> (Promise). Когда ответ реально придёт из сети, дальше работают цепочки <code>.then(...)</code> и при ошибке — <code>.catch(...)</code> (подробнее — на отдельном слайде ниже).</li>
+      <li><strong>Результат не приходит сразу:</strong> <code>fetch</code> возвращает <em>обещание</em> (Promise). Когда ответ придёт из сети, дальше подключаются <code>.then</code> и <code>.catch</code> — или тот же смысл через <code>await</code> (см. следующий слайд).</li>
       <li><strong>Объект ответа</strong> — это не сами «данные поста» сразу: часто сначала проверяют успешность (<code>response.ok</code>), а данные в формате JSON забирают вызовом <code>response.json()</code> (он тоже асинхронный, поэтому его обычно ставят внутрь <code>.then</code>).</li>
     </ul>
     <pre class="snippet">// GET — только адрес
@@ -596,8 +596,34 @@ fetch('https://пример.com/api/posts', {
     <p class="hint">Дальше в презентации тот же <code>fetch</code> повторяется в каждом файле — меняется только метод и то, что передаём в запросе.</p>
   </section>
 
+  <section class="slide">
+    <h2>Как ждать ответ: <code>.then</code> / <code>.catch</code> и <code>await</code></h2>
+    <p><code>fetch</code> и <code>response.json()</code> не «возвращают данные мгновенно»: они возвращают <strong>Promise</strong> — объект «когда-нибудь будет результат или ошибка». С этим работают двумя привычными способами.</p>
+    <ul>
+      <li><strong>Цепочка <code>.then</code>:</strong> в каждый <code>.then</code> передают функцию; она вызовется, когда предыдущий шаг завершится. То, что вы вернули из функции (в том числе новый Promise от <code>json()</code>), становится входом для следующего <code>.then</code>. <code>.catch</code> подписан на сбой в любой точке цепочки (сеть, неуспешный HTTP-код после <code>throw</code>, ошибка парсинга).</li>
+      <li><strong><code>async</code> / <code>await</code>:</strong> функция помечается как <code>async</code>; перед Promise пишут <code>await</code> — выполнение функции приостанавливается до результата, дальше код читается сверху вниз. Ошибки из <code>await</code> и из обычного кода ловят в <code>try { … } catch (e) { … }</code> — по смыслу это тот же <code>.catch</code>, только рядом с кодом.</li>
+    </ul>
+    <p class="lines">Один и тот же сценарий «получить JSON после GET» — два эквивалентных стиля (в проекте используется первый):</p>
+    <pre class="snippet"><code>// 1) then — как в GET.js / POST.js / PUT.js
+fetch(url)
+  .then(response => { if (!response.ok) throw new Error(response.status); return response.json(); })
+  .then(data => { /* работа с data */ })
+  .catch(err => { /* показать ошибку */ });
+
+// 2) await — тот же поток, другой синтаксис
+async function load() {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(response.status);
+    const data = await response.json();
+    /* работа с data */
+  } catch (err) { /* показать ошибку */ }
+}</code></pre>
+    <p class="hint">Важно в контексте: после <code>fetch</code> у вас ещё нет тела ответа как объекта — сначала объект <code>Response</code> (<code>ok</code>, <code>status</code>), затем отдельный шаг <code>json()</code>, который тоже асинхронный, поэтому его либо ставят во второй <code>.then</code>, либо пишут вторым <code>await</code>.</p>
+  </section>
+
   <section class="slide slide-code">
-    <h2><span class="tag get">GET.js</span> — полный код и пояснения</h2>
+    <h2><span class="tag get">GET.js</span> — полный код</h2>
     <pre class="snippet fullcode"><code>const btn = document.getElementById('loadData');
 const result = document.getElementById('result');
 
@@ -625,18 +651,16 @@ btn.addEventListener('click', () => {
 });
 </code></pre>
     <div class="explain-block">
-      <p><strong>Строки 1–2:</strong> Запоминаем кнопку и место на странице, куда потом выведем результат.</p>
-      <p><strong>Строка 5:</strong> Всё ниже срабатывает только когда пользователь нажал кнопку.</p>
-      <p><strong>Строка 6:</strong> Сразу пишем «Загрузка…», чтобы было видно, что страница что-то делает.</p>
-      <p><strong>Строка 9:</strong> <code>fetch</code> с одним адресом — это запрос GET: «дай список постов» с тестового сайта.</p>
-      <p><strong>Строки 10–15:</strong> Когда ответ пришёл: если всё плохо (не тот код ответа) — считаем это ошибкой и передаём дальше в обработчик ошибок. Если всё хорошо — превращаем текст ответа в обычный JavaScript-массив постов через <code>json()</code>.</p>
-      <p><strong>Строки 17–20:</strong> Из массива берём только пять первых постов, оформляем их как текст JSON с отступами и вставляем на страницу в блок <code>result</code>.</p>
-      <p><strong>Строки 22–24:</strong> Если что-то сломалось (интернет, ошибка сервера, наша же <code>throw</code>) — показываем сообщение об ошибке красным.</p>
+      <p><strong>В контексте интерфейса:</strong> <code>addEventListener('click', …)</code> запускает всю цепочку только по клику; пока запрос идёт, в блок результата сразу пишут текст загрузки.</p>
+      <p><strong><code>fetch</code> с одним URL:</strong> по умолчанию это GET — запрос списка постов; возвращается Promise с объектом ответа, не сразу массив данных.</p>
+      <p><strong>Первый <code>.then</code>:</strong> проверка <code>response.ok</code> отсекает «плохие» HTTP-коды; при успехе <code>return response.json()</code> передаёт в следующий шаг уже Promise с распарсенным массивом.</p>
+      <p><strong>Второй <code>.then</code>:</strong> работа с данными — <code>slice(0, 5)</code> и вывод через <code>innerHTML</code> с <code>JSON.stringify</code> для читаемого вида.</p>
+      <p><strong><code>.catch</code>:</strong> единая точка для сетевых сбоев, ответа не-JSON и ошибок, выброшенных через <code>throw</code> в предыдущем <code>then</code>.</p>
     </div>
   </section>
 
   <section class="slide slide-code">
-    <h2><span class="tag post">POST.js</span> — полный код и пояснения</h2>
+    <h2><span class="tag post">POST.js</span> — полный код</h2>
     <pre class="snippet fullcode"><code>const sendBtn = document.getElementById('sendBtn');
 const result = document.getElementById('result');
 
@@ -678,19 +702,14 @@ sendBtn.addEventListener('click', () => {
   });
 });</code></pre>
     <div class="explain-block">
-      <p><strong>Строки 1–2:</strong> Кнопка «отправить» и блок, куда выведем ответ сервера.</p>
-      <p><strong>Строки 5–6:</strong> Берём то, что ввели в полях заголовка и текста поста.</p>
-      <p><strong>Строки 8–12:</strong> Если что-то не заполнено — пишем предупреждение и выходим: до сервера запрос не доходит.</p>
-      <p><strong>Строка 14:</strong> Показываем «Отправляем данные…», пока ждём ответ.</p>
-      <p><strong>Строки 17–26:</strong> Отправляем POST: говорим серверу «создай пост», в заголовке указываем, что тело — JSON, в теле передаём заголовок, текст и номер пользователя (тестовый сайт так просит).</p>
-      <p><strong>Строки 28–33:</strong> Если ответ успешный — разбираем JSON и получаем объект «как будто созданного» поста (у тестового API часто появится <code>id: 101</code>).</p>
-      <p><strong>Строки 34–35:</strong> Показываем этот ответ на странице.</p>
-      <p><strong>Строки 37–39:</strong> Любая ошибка — красным текстом.</p>
+      <p><strong>Перед <code>fetch</code>:</strong> из полей ввода читают <code>.value</code>; пустые поля обрабатывают локально (<code>return</code>), чтобы не слать бессмысленный запрос.</p>
+      <p><strong>Второй аргумент <code>fetch</code>:</strong> <code>method: 'POST'</code>; <code>headers['Content-Type']</code> сообщает серверу, что тело — JSON; <code>body</code> должен быть <strong>строкой</strong>, поэтому объект собирают через <code>JSON.stringify</code> (включая <code>userId</code>, как ожидает JSONPlaceholder).</p>
+      <p><strong>Цепочка <code>then</code> / <code>catch</code>:</strong> та же схема, что в GET — сначала проверка ответа и <code>response.json()</code>, затем вывод объекта «созданного» поста (часто с новым <code>id</code>); сбои попадают в <code>catch</code>.</p>
     </div>
   </section>
 
   <section class="slide slide-code">
-    <h2><span class="tag put">PUT.js</span> — полный код и пояснения</h2>
+    <h2><span class="tag put">PUT.js</span> — полный код</h2>
     <pre class="snippet fullcode"><code>const updateBtn = document.getElementById('updateBtn');
 const result = document.getElementById('result');
 
@@ -734,19 +753,14 @@ updateBtn.addEventListener('click', () => {
 });
 </code></pre>
     <div class="explain-block">
-      <p><strong>Строки 1–2:</strong> Кнопка обновления и место для ответа.</p>
-      <p><strong>Строки 5–7:</strong> Считываем номер поста и новые заголовок с текстом.</p>
-      <p><strong>Строки 9–12:</strong> Если что-то пусто — сообщаем об этом и не шлём запрос.</p>
-      <p><strong>Строка 14:</strong> Показываем, что запрос ушёл и мы ждём.</p>
-      <p><strong>Строки 16–26:</strong> Адрес содержит номер поста — мы как бы говорим: «перезапиши именно этот пост». Метод PUT, в теле снова JSON с номером, заголовком, текстом и пользователем.</p>
-      <p><strong>Строки 28–31:</strong> Если всё ок — разбираем ответ как JSON и получаем объект поста после «обновления».</p>
-      <p><strong>Строки 32–36:</strong> Выводим заголовок и красиво отформатированный JSON в блоке на странице.</p>
-      <p><strong>Строки 38–40:</strong> Ошибки показываем отдельно.</p>
+      <p><strong>URL с подстановкой:</strong> шаблонная строка с <code>${postId}</code> указывает ресурс «пост с таким id»; метод <code>'PUT'</code> вместе с телом JSON означает «замени представление этого ресурса».</p>
+      <p><strong>Тело запроса:</strong> снова <code>JSON.stringify</code> объекта с <code>id</code>, обновлёнными <code>title</code> / <code>body</code> и <code>userId</code> — сервер сопоставляет путь и тело по правилам API.</p>
+      <p><strong>Обработка ответа:</strong> как в POST — <code>ok</code> → <code>json()</code> → второй <code>then</code> для отображения; ошибки HTTP — через <code>throw</code> в общий <code>catch</code>.</p>
     </div>
   </section>
 
   <section class="slide slide-code">
-    <h2><span class="tag del">DELETE.js</span> — полный код и пояснения</h2>
+    <h2><span class="tag del">DELETE.js</span> — полный код</h2>
     <pre class="snippet fullcode"><code>const deleteBtn = document.getElementById('deleteBtn');
 const result = document.getElementById('result');
 
@@ -776,24 +790,10 @@ deleteBtn.addEventListener('click', () => {
 });
 </code></pre>
     <div class="explain-block">
-      <p><strong>Строки 1–2:</strong> Кнопка удаления и блок с результатом.</p>
-      <p><strong>Строки 4–10:</strong> При нажатии читаем номер поста; если его не ввели — просим ввести и выходим.</p>
-      <p><strong>Строка 12:</strong> Пишем, что запрос на удаление отправлен.</p>
-      <p><strong>Строки 14–16:</strong> Шлём DELETE на адрес с этим номером — дополнительных данных в запросе не нужно.</p>
-      <p><strong>Строки 17–23:</strong> Здесь не обязательно вызывать <code>json()</code>: при удалении сервер часто не присылает полезное тело. Достаточно проверить, что ответ «успешный» — тогда показываем зелёное сообщение; иначе считаем это ошибкой.</p>
-      <p><strong>Строки 24–26:</strong> Любая ошибка — красным текстом.</p>
+      <p><strong><code>fetch</code> с <code>method: 'DELETE'</code>:</strong> достаточно адреса с id в пути; тело запроса обычно не передают.</p>
+      <p><strong>Первый <code>then</code> без <code>json()</code>:</strong> для DELETE ответ часто без полезного JSON — проверяют только <code>response.ok</code> и по веткам показывают успех или <code>throw</code> для кода ошибки.</p>
+      <p><strong><code>catch</code>:</strong> как и в других примерах — ловит сеть, исключения из <code>then</code> и показывает сообщение пользователю.</p>
     </div>
-  </section>
-
-  <section class="slide">
-    <h2>Цепочка «сначала подожди, потом сделай» (<code>.then</code> / <code>.catch</code>)</h2>
-    <ul>
-      <li><code>fetch</code> не ждёт ответ сразу: он возвращает «обещание» (Promise) — результат придёт позже.</li>
-      <li>Первый блок <code>.then</code> — смотрим, пришёл ли нормальный ответ; если нет, создаём ошибку, и она попадёт вниз, в <code>catch</code>.</li>
-      <li>Следующий <code>.then</code> — уже работаем с готовыми данными (например с массивом или объектом после <code>json()</code>).</li>
-      <li><code>catch</code> — одно место, где можно показать пользователю, что пошло не так (обрыв сети, «не найдено», ошибка сервера).</li>
-    </ul>
-    <p class="hint">То же самое можно записать через <code>async/await</code> и <code>try/catch</code> — смысл тот же, только читается как обычный пошаговый код.</p>
   </section>
 
   <section class="slide">
