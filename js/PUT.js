@@ -16,7 +16,7 @@ updateBtn.addEventListener('click', () => {
   fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`, {
     method: 'PUT',
     headers: {
-      'Content-Type': 'application/json'
+
     },
     body: JSON.stringify({
       id: postId,

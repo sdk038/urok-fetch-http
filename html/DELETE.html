@@ -1,58 +1,66 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>DELETE-запрос — пример</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f6f7fb;
-      padding: 30px;
-    }
-    h1 { color: #333; }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background-color: #b02a37;
-    }
-    .result {
-      margin-top: 20px;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    pre {
-      white-space: pre-wrap;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>DELETE-запрос — пример</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f7fb;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #b02a37;
+        }
+
+        .result {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        pre {
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>Пример DELETE-запроса</h1>
-  <p>Введите ID поста, который хотите удалить:</p>
+<h1>Пример DELETE-запроса</h1>
+<p>Введите ID поста, который хотите удалить:</p>
 
-  <input type="number" id="postId" placeholder="Например, 5">
-  <button id="deleteBtn">Удалить пост</button>
+<input type="number" id="postId" placeholder="Например, 5">
+<button id="deleteBtn">Удалить пост</button>
 
-  <div class="result" id="result"></div>
+<div class="result" id="result"></div>
 
-  <script src="../js/DELETE.js"></script>
+<script src="../js/DELETE.js"></script>
 </body>
 </html>
