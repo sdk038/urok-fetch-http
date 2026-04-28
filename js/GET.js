@@ -11,7 +11,6 @@ btn.addEventListener('click', () => {
       if (!response.ok) {
         throw new Error('Ошибка запроса: ' + response.status);
       }
-d
       return response.json();
     })
     .then(data => {

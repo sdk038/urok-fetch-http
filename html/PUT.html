@@ -1,67 +1,73 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>PUT-запрос — пример</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f6f7fb;
-      padding: 30px;
-    }
-    h1 {
-      color: #333;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    .result {
-      margin-top: 20px;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    pre {
-      white-space: pre-wrap;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>PUT-запрос — пример</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f6f7fb;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .result {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        pre {
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
 
-  <p>Введите ID поста, который хотите изменить:</p>
+<p>Введите ID поста, который хотите изменить:</p>
 
-  <input type="number" id="postId" placeholder="Например, 1">
+<input type="number" id="postId" placeholder="Например, 1">
 
-  <label>Новый заголовок:</label>
-  <input type="text" id="title" placeholder="Введите новый заголовок">
+<label>Новый заголовок:</label>
+<input type="text" id="title" placeholder="Введите новый заголовок">
 
-  <label>Новый текст поста:</label>
-  <textarea id="body" rows="4" placeholder="Введите новый текст"></textarea>
+<label>Новый текст поста:</label>
+<textarea id="body" rows="4" placeholder="Введите новый текст"></textarea>
 
-  <button id="updateBtn">Обновить пост</button>
+<button id="updateBtn">Обновить пост</button>
 
 
-  <div class="result" id="result"></div>
+<div class="result" id="result"></div>
 
-  <script src="../js/PUT.js"></script>
+<script src="../js/PUT.js"></script>
 </body>
 </html>
